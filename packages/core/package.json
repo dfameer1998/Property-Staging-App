@@ -1,0 +1,10 @@
+{
+  "name": "space-staging-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Initial shared domain engine for the native space-staging application",
+  "engines": { "node": ">=22" },
+  "scripts": { "test": "node --test", "demo": "node examples/project.mjs" },
+  "exports": "./src/index.mjs"
+}

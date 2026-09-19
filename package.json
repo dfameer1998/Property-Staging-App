@@ -1,0 +1,6 @@
+{
+  "name": "property-staging-app", "version": "0.2.0", "private": true,
+  "type": "module", "engines": {"node": ">=22"},
+  "scripts": {"test": "node --test packages/core/test/*.test.mjs test/*.test.mjs", "test:db": "node scripts/test-database.mjs"},
+  "devDependencies": {"@electric-sql/pglite": "0.5.8"}
+}
