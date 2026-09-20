@@ -16,12 +16,12 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class ScanActivity extends Activity implements GLSurfaceView.Renderer {
  private GLSurfaceView surface; private TextView guidance; private Session session;
- private boolean installRequested=false,active=false; private int width=1,height=1,texture,program,markerProgram;
+ private boolean installRequested=false; private volatile boolean active=false; private int width=1,height=1,texture,program,markerProgram;
  private final List<Anchor> points=new ArrayList<>(); private volatile android.graphics.PointF pendingTap;
  private final FloatBuffer quad=buffer(new float[]{-1,-1,1,-1,-1,1,1,1}),uv=buffer(new float[8]);
  private static FloatBuffer buffer(float[] values){FloatBuffer b=ByteBuffer.allocateDirect(values.length*4).order(ByteOrder.nativeOrder()).asFloatBuffer();b.put(values).position(0);return b;}
  @Override public void onCreate(Bundle state){super.onCreate(state);FrameLayout layout=new FrameLayout(this);surface=new GLSurfaceView(this);surface.setEGLContextClientVersion(2);surface.setPreserveEGLContextOnPause(true);surface.setRenderer(this);layout.addView(surface);
-  LinearLayout panel=new LinearLayout(this);panel.setOrientation(1);panel.setPadding(24,20,24,30);panel.setBackgroundColor(0xEEFFFFFF);guidance=new TextView(this);guidance.setText("Move slowly to find the floor. Tap each corner in order.");panel.addView(guidance);
+  LinearLayout panel=new LinearLayout(this);panel.setOrientation(LinearLayout.VERTICAL);panel.setPadding(24,20,24,30);panel.setBackgroundColor(0xEEFFFFFF);guidance=new TextView(this);guidance.setText("Move slowly to find the floor. Tap each corner in order.");panel.addView(guidance);
   LinearLayout buttons=new LinearLayout(this);Button cancel=new Button(this),undo=new Button(this),save=new Button(this);cancel.setText("Cancel");undo.setText("Undo");save.setText("Save floor");buttons.addView(cancel);buttons.addView(undo);buttons.addView(save);panel.addView(buttons);FrameLayout.LayoutParams params=new FrameLayout.LayoutParams(-1,-2,Gravity.BOTTOM);layout.addView(panel,params);setContentView(layout);
   cancel.setOnClickListener(v->finish());undo.setOnClickListener(v->surface.queueEvent(()->{if(!points.isEmpty())points.remove(points.size()-1).detach();say(points.size()+" corners marked.");}));save.setOnClickListener(v->surface.queueEvent(this::save));
   surface.setOnTouchListener((v,event)->{if(event.getAction()==android.view.MotionEvent.ACTION_UP){pendingTap=new android.graphics.PointF(event.getX(),event.getY());v.performClick();}return true;});

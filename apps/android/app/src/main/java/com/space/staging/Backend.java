@@ -38,6 +38,14 @@ final class Backend {
   request("/storage/v1/object/space-media/"+path,"POST",null,bytes,mime,true);
   request("/rest/v1/media?id=eq."+id,"PATCH",new JSONObject().put("status","ready"),null,"application/json",true);
  }
+ String mediaURL(JSONObject asset)throws Exception {
+  JSONObject data=(JSONObject)request("/storage/v1/object/sign/space-media/"+asset.getString("object_path"),"POST",new JSONObject().put("expiresIn",120),null,"application/json",true);
+  String path=data.getString("signedURL");if(!path.startsWith("/object/sign/"))throw new IOException("Invalid media link.");return BackendConfig.URL+"/storage/v1"+path;
+ }
+ void deleteMedia(JSONObject asset)throws Exception {
+  request("/storage/v1/object/space-media","DELETE",new JSONObject().put("prefixes",new JSONArray().put(asset.getString("object_path"))),null,"application/json",true);
+  request("/rest/v1/media?id=eq."+asset.getString("id"),"DELETE",null,null,"application/json",true);
+ }
  void saveFloor(JSONArray points,String route,String space,Double ceiling)throws Exception{
   JSONObject data=new JSONObject().put("id",UUID.randomUUID().toString()).put("spaceId",space).put("schemaVersion",1).put("platform","android").put("route",route).put("unit","m").put("coordinateSystem","right_handed_y_up").put("floorPoints",points);
   if(ceiling!=null)data.put("ceilingHeightM",ceiling);

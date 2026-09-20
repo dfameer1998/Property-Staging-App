@@ -29,6 +29,12 @@ await denied(`update media set status='ready' where id='${media}'`);
 await db.exec(`insert into storage.objects(bucket_id,name,metadata) values('space-media','${path}','{"size":123,"mimetype":"image/jpeg"}')`);
 await db.exec(`update media set status='ready' where id='${media}'`);
 assert.equal((await db.query(`select status from media where id='${media}'`)).rows[0].status,'ready');checks++;
+await db.exec(`delete from media where id='${media}'`);
+assert.equal((await db.query(`select id from media where id='${media}'`)).rows.length,1);checks++;
+const bad='44444444-4444-4444-8444-444444444444',badPath=`${alice}/${space}/${bad}`;
+await db.exec(`insert into media(id,space_id,object_path,mime_type,byte_size) values('${bad}','${space}','${badPath}','image/jpeg',999)`);
+await db.exec(`insert into storage.objects(bucket_id,name,metadata) values('space-media','${badPath}','{"size":123,"mimetype":"image/jpeg"}')`);
+await denied(`update media set status='ready' where id='${bad}'`);
 await denied(`insert into captures(id,space_id,owner_id,platform,route,boundary_mm,floor_area_m2) values(gen_random_uuid(),'${space}','${alice}','ios','arkit_guided','[[0,0],[1000,0],[0,1000]]',0.5)`);
 await as(bob);
 for(const table of ['projects','spaces','media','captures','design_briefs']){assert.equal((await db.query(`select * from ${table}`)).rows.length,0);checks++;}
@@ -37,6 +43,8 @@ await denied(`insert into storage.objects(bucket_id,name,metadata) values('space
 assert.equal((await db.query('select * from storage.objects')).rows.length,0);checks++;
 await db.exec(`update projects set name='stolen' where id='${project}'`);
 await as(alice);assert.equal((await db.query(`select name from projects where id='${project}'`)).rows[0].name,'Alice home');checks++;
+await db.exec(`delete from storage.objects where bucket_id='space-media' and name='${path}';delete from media where id='${media}'`);
+assert.equal((await db.query(`select id from media where id='${media}'`)).rows.length,0);checks++;
 for(let i=0;i<9;i++)await db.exec(`insert into projects(name) values('Quota ${i}')`);
 await denied("insert into projects(name) values('Over limit')");
 await as('', 'anon');await denied('select * from projects');

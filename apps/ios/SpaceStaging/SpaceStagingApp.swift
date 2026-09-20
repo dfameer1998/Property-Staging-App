@@ -2,6 +2,7 @@ import SwiftUI
 import ARKit
 import RoomPlan
 import UniformTypeIdentifiers
+import AVKit
 
 @main struct SpaceStagingApp: App {
  @StateObject private var backend=Backend()
@@ -73,6 +74,8 @@ struct SpaceView:View {
  @State private var scans:[Record]=[]
  @State private var media:[Record]=[]
  @State private var sheet:CaptureSheet?
+ @State private var preview:MediaPreview?
+ @State private var deleting:Record?
  @State private var style="modern"
  @State private var notes=""
  @State private var busy=false
@@ -89,7 +92,11 @@ struct SpaceView:View {
   Section("Saved captures") {
    if scans.isEmpty {Text("No floor outlines yet.").foregroundStyle(.secondary)}
    ForEach(scans){scan in VStack(alignment:.leading){Text(String(format:"%.2f m² estimated floor",scan.number("floor_area_m2")));Text("Needs measurement verification").font(.caption).foregroundStyle(.secondary)}}
-   ForEach(media){asset in Label(asset.text("mime_type").hasPrefix("video") ? "Video" : asset.text("mime_type")=="application/json" ? "3D room data":"Photo",systemImage:"doc").badge(asset.text("status")=="ready" ? "Saved":"Upload pending")}
+   ForEach(media){asset in
+    Button {perform{preview=MediaPreview(id:asset.id,url:try await api.mediaURL(asset),mime:asset.text("mime_type"))}} label:{Label(asset.text("mime_type").hasPrefix("video") ? "Video" : asset.text("mime_type")=="application/json" ? "3D room data":"Photo",systemImage:"doc").badge(asset.text("status")=="ready" ? "Saved":"Upload pending")}
+    .disabled(asset.text("status") != "ready" || asset.text("mime_type")=="application/json")
+    .swipeActions{if asset.text("status")=="ready"{Button("Delete",role:.destructive){deleting=asset}}}
+   }
   }
   Section("Your design direction") {
    Picker("Style",selection:$style){ForEach(styles,id:\.self){Text($0.replacingOccurrences(of:"_",with:" ").capitalized).tag($0)}}
@@ -99,6 +106,8 @@ struct SpaceView:View {
   }
  }.navigationTitle(space.text("name")).disabled(busy).overlay{if busy{ProgressView("Saving…").padding().background(.regularMaterial,in:RoundedRectangle(cornerRadius:12))}}
  .task{await load()}.refreshable{await load()}
+ .sheet(item:$preview){item in MediaPreviewView(item:item)}
+ .confirmationDialog("Delete this media?",isPresented:Binding(get:{deleting != nil},set:{if !$0{deleting=nil}}),titleVisibility:.visible){Button("Delete",role:.destructive){if let asset=deleting{deleting=nil;perform{try await api.deleteMedia(asset)}}}}
  .fullScreenCover(item:$sheet,onDismiss:{Task{await load()}}){selection in
   switch selection {
   case .floor: GuidedScan { points in sheet=nil;perform{try await api.saveFloor(points:points,route:"arkit_guided",spaceID:space.id)} }
@@ -110,4 +119,11 @@ struct SpaceView:View {
  }
  func perform(_ action:@escaping ()async throws->Void){busy=true;Task{defer{busy=false};do{try await action();await load()}catch{api.message=error.localizedDescription}}}
  func load()async{do{scans=try await api.rows("captures?space_id=eq.\(space.id)&select=*&order=created_at.desc&limit=100");media=try await api.rows("media?space_id=eq.\(space.id)&select=*&order=created_at.desc&limit=100");let briefs=try await api.rows("design_briefs?space_id=eq.\(space.id)&select=*&order=created_at.desc&limit=1");if let brief=briefs.first{style=brief.text("style");notes=brief.text("instructions")}}catch{api.message=error.localizedDescription}}
+}
+
+struct MediaPreview:Identifiable {let id:String;let url:URL;let mime:String}
+struct MediaPreviewView:View {
+ @Environment(\.dismiss) var dismiss
+ let item:MediaPreview
+ var body:some View {NavigationStack{Group{if item.mime.hasPrefix("video"){VideoPlayer(player:AVPlayer(url:item.url))}else{AsyncImage(url:item.url){phase in switch phase{case .success(let image):image.resizable().scaledToFit();case .failure:ContentUnavailableView("Preview expired",systemImage:"photo",description:Text("Close and reopen this photo."));default:ProgressView()}}}}.navigationTitle("Your media").toolbar{Button("Done"){dismiss()}}}}
 }

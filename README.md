@@ -6,7 +6,7 @@ Native iPhone and Android application, version 0.2.0. This is an engineering bet
 
 - Email/password sign-in and account creation through Supabase Auth. Confirmation emails use the project's existing email configuration.
 - Saved projects and interior/exterior spaces, with database-enforced owner isolation.
-- Private photo/video imports (10 MB per file) and design briefs with ten style choices.
+- Private photo/video imports, viewing, and deletion (10 MB per file), and design briefs with ten style choices.
 - iPhone: ARKit floor-corner capture; RoomPlan 3D room capture on supported devices; camera/photo library; rectangular reference measurements.
 - Android: ARCore floor-corner capture, camera preview and anchored corner markers; media import; rectangular reference measurements.
 - Server-side capture normalization, floor-polygon validation, meter-to-millimeter conversion, and authenticated saving.
@@ -41,7 +41,7 @@ Beta limits: 10 projects, 40 spaces, 50 media reservations, 100 floor captures, 
 - AI image editing/rendering with architecture-preservation checks, usage limits, and billing.
 - Licensed product feeds, variant-aware shopping, delivery/stock refresh, and service-provider integrations.
 - Calibration against physical ground truth on iPhone and Android; cross-view consistency, irregular geometry, obstacles, doors and delivery access.
-- Recoverable offline captures, encrypted persistent sessions, robust upload retry/cleanup, media viewing/export, account deletion, and accessibility review.
+- Recoverable offline captures, encrypted persistent sessions, robust upload retry/cleanup, media export, account deletion, and accessibility review.
 - Production SMTP, abuse controls, retention policies, monitoring/load tests, payments, and store assets/signing/review.
 
 Every captured floor remains **unverified**. AR tracking and photorealistic imagery alone cannot establish accurate dimensions or furniture fit. RoomPlan JSON is stored as source evidence; it is not silently converted into a verified floor. Exterior floor capture needs a level, trackable surface and is not a terrain survey.

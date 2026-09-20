@@ -1,6 +1,6 @@
 # Engineering beta milestone
 
-Date: 2026-09-19. Working product name: Space Staging.
+Date: 2026-09-20. Working product name: Space Staging.
 
 The original product scope remains native iPhone and Android scanning at paid launch, AI staging, shopping comparison, and physical setup services. This commit establishes the capture and storage milestone; it does not reduce that launch scope.
 
@@ -12,7 +12,7 @@ The service discards all client verification, obstacle, and uncertainty assertio
 
 ## Data and access
 
-Projects own spaces; spaces own media, captures, and briefs. Composite foreign keys include owner IDs to prevent attaching one user's children to another user's project or space. Client capture writes are denied; the Edge Function validates and writes after verifying user identity and space ownership. Private uploads need a matching owner/space reservation; upload bytes/type must match it. Upload completion checks for an existing storage object. Existing files cannot be overwritten by clients.
+Projects own spaces; spaces own media, captures, and briefs. Composite foreign keys include owner IDs to prevent attaching one user's children to another user's project or space. Client capture writes are denied; the Edge Function validates and writes after verifying user identity and space ownership. Private uploads need a matching owner/space reservation; upload completion checks the stored object’s actual bytes/type against it. The bucket enforces the upload size limit. Existing files cannot be overwritten by clients.
 
 Client session tokens are in memory only in this beta. No password or refresh token is committed or written to persistent app storage. Native session persistence and offline drafts are scheduled next. Failed uploads can leave reservations; cleanup/retry is a release blocker, not an assumed success.
 

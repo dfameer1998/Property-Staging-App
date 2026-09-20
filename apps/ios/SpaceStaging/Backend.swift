@@ -70,6 +70,15 @@ struct AppFailure: LocalizedError { let message: String; var errorDescription: S
   try await request("/storage/v1/object/space-media/"+path,method:"POST",bytes:data,mime:mime)
   try await request("/rest/v1/media?id=eq."+id,method:"PATCH",json:["status":"ready"])
  }
+ func mediaURL(_ asset:Record) async throws -> URL {
+  let result=try await request("/storage/v1/object/sign/space-media/"+asset.text("object_path"),method:"POST",json:["expiresIn":120]) as? [String:Any]
+  guard let path=result?["signedURL"] as? String, path.hasPrefix("/object/sign/"), let url=URL(string:BackendConfig.url+"/storage/v1"+path) else {throw AppFailure(message:"Could not open this media.")}
+  return url
+ }
+ func deleteMedia(_ asset:Record) async throws {
+  try await request("/storage/v1/object/space-media",method:"DELETE",json:["prefixes":[asset.text("object_path")]])
+  try await request("/rest/v1/media?id=eq."+asset.id,method:"DELETE")
+ }
  func saveFloor(points:[[Double]], route:String, spaceID:String, ceiling:Double?=nil) async throws {
   var payload:[String:Any] = ["id":UUID().uuidString.lowercased(),"spaceId":spaceID,"schemaVersion":1,"platform":"ios","route":route,"unit":"m","coordinateSystem":"right_handed_y_up","floorPoints":points]
   if let ceiling { payload["ceilingHeightM"]=ceiling }
