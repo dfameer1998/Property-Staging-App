@@ -13,7 +13,9 @@ struct RootView:View {
 }
 struct LoginView:View {
  @EnvironmentObject var api:Backend
- @State private var email="",password="",busy=false
+ @State private var email=""
+ @State private var password=""
+ @State private var busy=false
  var body:some View {
   NavigationStack { VStack(alignment:.leading,spacing:22) {
    Image(systemName:"house.and.flag.fill").font(.system(size:44)).foregroundStyle(.tint)
@@ -31,7 +33,10 @@ struct LoginView:View {
 }
 struct ProjectsView:View {
  @EnvironmentObject var api:Backend
- @State private var rows:[Record]=[],adding=false,name="",busy=false
+ @State private var rows:[Record]=[]
+ @State private var adding=false
+ @State private var name=""
+ @State private var busy=false
  var body:some View {
   NavigationStack { List {
    Section { Text("Your next space starts here.").font(.title2.bold());Text("A home for sale, a rental to furnish, or a place to gather.").foregroundStyle(.secondary) }
@@ -49,7 +54,10 @@ struct ProjectsView:View {
 struct SpacesView:View {
  @EnvironmentObject var api:Backend
  let project:Record
- @State private var rows:[Record]=[],adding=false,name="",exterior=false
+ @State private var rows:[Record]=[]
+ @State private var adding=false
+ @State private var name=""
+ @State private var exterior=false
  var body:some View { List {
   ForEach(rows){row in NavigationLink{SpaceView(space:row)}label:{Label(row.text("name"),systemImage:row.text("environment")=="exterior" ? "leaf":"sofa")}}
   if rows.isEmpty { ContentUnavailableView("Add a space",systemImage:"square.dashed",description:Text("Start with a room or an outdoor area.")) }
@@ -62,7 +70,12 @@ private enum CaptureSheet:String,Identifiable {case floor,room,photo,library,man
 struct SpaceView:View {
  @EnvironmentObject var api:Backend
  let space:Record
- @State private var scans:[Record]=[],media:[Record]=[],sheet:CaptureSheet?,style="modern",notes="",busy=false
+ @State private var scans:[Record]=[]
+ @State private var media:[Record]=[]
+ @State private var sheet:CaptureSheet?
+ @State private var style="modern"
+ @State private var notes=""
+ @State private var busy=false
  private let styles=["modern","contemporary","scandinavian","japandi","traditional","coastal","mid_century","industrial","bohemian","custom"]
  var body:some View { List {
   Section("Capture your space") {

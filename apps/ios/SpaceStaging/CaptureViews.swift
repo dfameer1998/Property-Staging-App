@@ -42,6 +42,8 @@ struct GuidedScan:View {
  @Published var error:String?
  var saved:((Data)->Void)?
  override init(){super.init();view.delegate=self}
+ required init?(coder:NSCoder){super.init();view.delegate=self}
+ nonisolated func encode(with coder:NSCoder) { /* Capture sessions are never archived. */ }
  func start(){AVCaptureDevice.requestAccess(for:.video){allowed in Task{@MainActor in if allowed{self.view.captureSession.run(configuration:RoomCaptureSession.Configuration())}else{self.error="Camera permission is needed in Settings."}}}}
  nonisolated func captureView(shouldPresent roomDataForProcessing:CapturedRoomData,error:Error?)->Bool{error==nil}
  nonisolated func captureView(didPresent processedResult:CapturedRoom,error:Error?){
@@ -64,7 +66,9 @@ struct RoomScan:View {
 }
 struct ReferenceMeasurements:View {
  @Environment(\.dismiss) var dismiss
- @State private var width="",depth="",height=""
+ @State private var width=""
+ @State private var depth=""
+ @State private var height=""
  let saved:([[Double]],Double?)->Void
  var w:Double{Double(width) ?? 0};var d:Double{Double(depth) ?? 0}
  var body:some View {NavigationStack{Form{Section("Rectangular floor only · meters"){TextField("Width",text:$width);TextField("Depth",text:$depth);TextField("Ceiling height (optional)",text:$height)}.keyboardType(.decimalPad);Text("Use a tape or laser measure. For irregular rooms, use the guided corner scan. Entry alone does not confirm furniture fit.").font(.footnote);Button("Save reference floor"){saved([[0,0,0],[w,0,0],[w,0,d],[0,0,d]],Double(height))}.disabled(w<=0 || d<=0 || w>100 || d>100)}.navigationTitle("Reference dimensions").toolbar{Button("Cancel"){dismiss()}}}}

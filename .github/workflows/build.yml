@@ -31,6 +31,9 @@ jobs:
           gradle-version: '8.13'
       - run: gradle --no-daemon :app:assembleDebug :app:lintDebug
         working-directory: apps/android
+      - name: Report Android lint findings
+        if: failure()
+        run: cat apps/android/app/build/reports/lint-results-debug.txt
       - uses: actions/upload-artifact@v4
         with:
           name: space-staging-android-debug

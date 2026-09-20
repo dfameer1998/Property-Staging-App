@@ -24,7 +24,7 @@ final class Backend {
    if(body!=null){con.setDoOutput(true);con.setFixedLengthStreamingMode(body.length);try(OutputStream out=con.getOutputStream()){out.write(body);}}
    int status=con.getResponseCode();InputStream stream=status>=400?con.getErrorStream():con.getInputStream();String text="";
    if(stream!=null)try(InputStream in=stream;ByteArrayOutputStream out=new ByteArrayOutputStream()){byte[] buf=new byte[8192];int n;while((n=in.read(buf))!=-1){if(out.size()+n>2*1024*1024)throw new IOException("Response is too large.");out.write(buf,0,n);}text=out.toString("UTF-8");}
-   Object result=text.isBlank()?new JSONObject():new JSONTokener(text).nextValue();
+   Object result=text.trim().isEmpty()?new JSONObject():new JSONTokener(text).nextValue();
    if(status<200||status>=300){JSONObject e=result instanceof JSONObject?(JSONObject)result:new JSONObject();throw new IOException(e.optString("msg",e.optString("message",e.optString("error_description",e.optString("error","Request failed. Please retry.")))));}
    return result;
   }finally{con.disconnect();}
